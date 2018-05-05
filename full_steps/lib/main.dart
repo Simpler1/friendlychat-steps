@@ -8,7 +8,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+final auth = FirebaseAuth.instance;
 final analytics = new FirebaseAnalytics();
 final googleSignIn = new GoogleSignIn();
 
@@ -22,8 +24,6 @@ final ThemeData kDefaultTheme = new ThemeData(
   primarySwatch: Colors.purple,
   accentColor: Colors.orangeAccent[400],
 );
-
-const String _name = "Your Name";
 
 void main() {
   runApp(new FriendlychatApp());
@@ -185,6 +185,14 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     if (user == null) {
       await googleSignIn.signIn();
       analytics.logLogin();
+    }
+    if (await auth.currentUser() == null) {
+      GoogleSignInAuthentication credentials =
+          await googleSignIn.currentUser.authentication;
+      await auth.signInWithGoogle(
+        idToken: credentials.idToken,
+        accessToken: credentials.accessToken,
+      );
     }
   }
 
