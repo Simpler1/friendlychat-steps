@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
+final analytics = new FirebaseAnalytics();
 final googleSignIn = new GoogleSignIn();
 
 final ThemeData kIOSTheme = new ThemeData(
@@ -182,6 +184,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     if (user == null) user = await googleSignIn.signInSilently();
     if (user == null) {
       await googleSignIn.signIn();
+      analytics.logLogin();
     }
   }
 
@@ -197,5 +200,6 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _messages.insert(0, message);
     });
     message.animationController.forward();
+    analytics.logEvent(name: 'send_message');
   }
 }
