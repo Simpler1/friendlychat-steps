@@ -7,3 +7,8 @@ build/
 packages
 pubspec.lock
 .flutter-plugins
+full_steps/android/.project
+full_steps/android/app/.settings/org.eclipse.buildship.core.prefs
+full_steps/android/.settings/org.eclipse.buildship.core.prefs
+full_steps/android/app/.classpath
+full_steps/android/app/.project
