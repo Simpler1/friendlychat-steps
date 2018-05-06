@@ -16,11 +16,6 @@ import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
-final reference = FirebaseDatabase.instance.reference().child('messages');
-final auth = FirebaseAuth.instance;
-final analytics = new FirebaseAnalytics();
-final googleSignIn = new GoogleSignIn();
-
 final ThemeData kIOSTheme = new ThemeData(
   primarySwatch: Colors.orange,
   primaryColor: Colors.grey[100],
@@ -32,8 +27,30 @@ final ThemeData kDefaultTheme = new ThemeData(
   accentColor: Colors.orangeAccent[400],
 );
 
+final googleSignIn = new GoogleSignIn();
+final analytics = new FirebaseAnalytics();
+final auth = FirebaseAuth.instance;
+final reference = FirebaseDatabase.instance.reference().child('messages');
+
 void main() {
   runApp(new FriendlychatApp());
+}
+
+Future<Null> _ensureLoggedIn() async {
+  GoogleSignInAccount user = googleSignIn.currentUser;
+  if (user == null) user = await googleSignIn.signInSilently();
+  if (user == null) {
+    await googleSignIn.signIn();
+    analytics.logLogin();
+  }
+  if (await auth.currentUser() == null) {
+    GoogleSignInAuthentication credentials =
+        await googleSignIn.currentUser.authentication;
+    await auth.signInWithGoogle(
+      idToken: credentials.idToken,
+      accessToken: credentials.accessToken,
+    );
+  }
 }
 
 class FriendlychatApp extends StatelessWidget {
@@ -201,30 +218,13 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _handleSubmitted(String text) async {
+  Future<Null> _handleSubmitted(String text) async {
     _textController.clear();
     setState(() {
       _isComposing = false;
     });
     await _ensureLoggedIn();
     _sendMessage(text: text);
-  }
-
-  Future<Null> _ensureLoggedIn() async {
-    GoogleSignInAccount user = googleSignIn.currentUser;
-    if (user == null) user = await googleSignIn.signInSilently();
-    if (user == null) {
-      await googleSignIn.signIn();
-      analytics.logLogin();
-    }
-    if (await auth.currentUser() == null) {
-      GoogleSignInAuthentication credentials =
-          await googleSignIn.currentUser.authentication;
-      await auth.signInWithGoogle(
-        idToken: credentials.idToken,
-        accessToken: credentials.accessToken,
-      );
-    }
   }
 
   void _sendMessage({String text, String imageUrl}) {
